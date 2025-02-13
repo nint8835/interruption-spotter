@@ -9,8 +9,5 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	err := rootCmd.Execute()
-	if err != nil {
-		// TODO: Don't panic
-		panic(err)
-	}
+	checkErr(err, "Failed to execute")
 }

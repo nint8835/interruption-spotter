@@ -2,20 +2,20 @@ package spotdata
 
 type InstanceType struct {
 	EMR   bool    `json:"emr"`
-	Cores int     `json:"cores"`
+	Cores int64   `json:"cores"`
 	RamGB float32 `json:"ram_gb"`
 }
 
 type Range struct {
-	Index int    `json:"index"`
+	Index int64  `json:"index"`
 	Label string `json:"label"`
-	Dots  int    `json:"dots"`
-	Max   int    `json:"max"`
+	Dots  int64  `json:"dots"`
+	Max   int64  `json:"max"`
 }
 
 type InstanceTypeStats struct {
-	Savings           int `json:"s"`
-	InterruptionLevel int `json:"r"`
+	Savings           int64 `json:"s"`
+	InterruptionLevel int64 `json:"r"`
 }
 
 type OS map[string]InstanceTypeStats

@@ -4,12 +4,14 @@ INSERT INTO spot_instance_stats (
         operating_system,
         instance_type,
         interruption_level,
+        interruption_level_label,
         observed_time
     )
-VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP);
+VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
 
 -- name: GetCurrentInterruptionLevel :one
-SELECT interruption_level
+SELECT interruption_level,
+    interruption_level_label
 FROM spot_instance_stats
 WHERE region = ?
     AND operating_system = ?
@@ -23,12 +25,19 @@ SELECT id,
     instance_type,
     operating_system,
     interruption_level,
+    interruption_level_label,
     LAG(interruption_level) OVER (
         PARTITION BY region,
         operating_system,
         instance_type
         ORDER BY observed_time
     ) AS last_interruption_level,
+    LAG(interruption_level_label) OVER (
+        PARTITION BY region,
+        operating_system,
+        instance_type
+        ORDER BY observed_time
+    ) AS last_interruption_level_label,
     observed_time
 FROM spot_instance_stats
 WHERE region IN (sqlc.slice('regions'))

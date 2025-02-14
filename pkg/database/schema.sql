@@ -4,5 +4,6 @@ CREATE TABLE IF NOT EXISTS spot_instance_stats (
     operating_system TEXT NOT NULL,
     instance_type TEXT NOT NULL,
     interruption_level INTEGER NOT NULL,
+    interruption_level_label TEXT NOT NULL,
     observed_time TIMESTAMP NOT NULL
 );

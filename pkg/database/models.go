@@ -9,10 +9,11 @@ import (
 )
 
 type SpotInstanceStat struct {
-	ID                int64
-	Region            string
-	OperatingSystem   string
-	InstanceType      string
-	InterruptionLevel int64
-	ObservedTime      time.Time
+	ID                     int64
+	Region                 string
+	OperatingSystem        string
+	InstanceType           string
+	InterruptionLevel      int64
+	InterruptionLevelLabel string
+	ObservedTime           time.Time
 }

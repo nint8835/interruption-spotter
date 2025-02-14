@@ -43,16 +43,19 @@ var runCmd = &cobra.Command{
 						checkErr(err, "Failed to get current interruption level")
 					}
 
-					if err == nil && currentLevel == int64(instanceStats.InterruptionLevel) {
+					interruptionLevelLabel := resp.Ranges[instanceStats.InterruptionLevel].Label
+
+					if err == nil && currentLevel.InterruptionLevel == instanceStats.InterruptionLevel && currentLevel.InterruptionLevelLabel == interruptionLevelLabel {
 						slog.Info("No change in interruption level", "region", regionName, "os", osName, "instance_type", instanceType)
 						continue
 					}
 
 					err = db.InsertStat(ctx, database.InsertStatParams{
-						Region:            regionName,
-						OperatingSystem:   osName,
-						InstanceType:      instanceType,
-						InterruptionLevel: int64(instanceStats.InterruptionLevel),
+						Region:                 regionName,
+						OperatingSystem:        osName,
+						InstanceType:           instanceType,
+						InterruptionLevel:      instanceStats.InterruptionLevel,
+						InterruptionLevelLabel: interruptionLevelLabel,
 					})
 					checkErr(err, "Failed to insert stat")
 				}
@@ -61,10 +64,11 @@ var runCmd = &cobra.Command{
 
 		// Testing level, for ensuring diffs work
 		db.InsertStat(ctx, database.InsertStatParams{
-			Region:            "ca-central-1",
-			OperatingSystem:   "Linux",
-			InstanceType:      "t3.medium",
-			InterruptionLevel: 10,
+			Region:                 "ca-central-1",
+			OperatingSystem:        "Linux",
+			InstanceType:           "t3.medium",
+			InterruptionLevel:      10,
+			InterruptionLevelLabel: ">100%",
 		})
 
 		events, err := db.GetInterruptionChanges(ctx, database.GetInterruptionChangesParams{

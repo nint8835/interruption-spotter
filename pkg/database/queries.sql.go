@@ -12,7 +12,8 @@ import (
 )
 
 const getCurrentInterruptionLevel = `-- name: GetCurrentInterruptionLevel :one
-SELECT interruption_level
+SELECT interruption_level,
+    interruption_level_label
 FROM spot_instance_stats
 WHERE region = ?
     AND operating_system = ?
@@ -27,11 +28,16 @@ type GetCurrentInterruptionLevelParams struct {
 	InstanceType    string
 }
 
-func (q *Queries) GetCurrentInterruptionLevel(ctx context.Context, arg GetCurrentInterruptionLevelParams) (int64, error) {
+type GetCurrentInterruptionLevelRow struct {
+	InterruptionLevel      int64
+	InterruptionLevelLabel string
+}
+
+func (q *Queries) GetCurrentInterruptionLevel(ctx context.Context, arg GetCurrentInterruptionLevelParams) (GetCurrentInterruptionLevelRow, error) {
 	row := q.db.QueryRowContext(ctx, getCurrentInterruptionLevel, arg.Region, arg.OperatingSystem, arg.InstanceType)
-	var interruption_level int64
-	err := row.Scan(&interruption_level)
-	return interruption_level, err
+	var i GetCurrentInterruptionLevelRow
+	err := row.Scan(&i.InterruptionLevel, &i.InterruptionLevelLabel)
+	return i, err
 }
 
 const getInterruptionChanges = `-- name: GetInterruptionChanges :many
@@ -40,12 +46,19 @@ SELECT id,
     instance_type,
     operating_system,
     interruption_level,
+    interruption_level_label,
     LAG(interruption_level) OVER (
         PARTITION BY region,
         operating_system,
         instance_type
         ORDER BY observed_time
     ) AS last_interruption_level,
+    LAG(interruption_level_label) OVER (
+        PARTITION BY region,
+        operating_system,
+        instance_type
+        ORDER BY observed_time
+    ) AS last_interruption_level_label,
     observed_time
 FROM spot_instance_stats
 WHERE region IN (/*SLICE:regions*/?)
@@ -61,13 +74,15 @@ type GetInterruptionChangesParams struct {
 }
 
 type GetInterruptionChangesRow struct {
-	ID                    int64
-	Region                string
-	InstanceType          string
-	OperatingSystem       string
-	InterruptionLevel     int64
-	LastInterruptionLevel interface{}
-	ObservedTime          time.Time
+	ID                         int64
+	Region                     string
+	InstanceType               string
+	OperatingSystem            string
+	InterruptionLevel          int64
+	InterruptionLevelLabel     string
+	LastInterruptionLevel      interface{}
+	LastInterruptionLevelLabel interface{}
+	ObservedTime               time.Time
 }
 
 func (q *Queries) GetInterruptionChanges(ctx context.Context, arg GetInterruptionChangesParams) ([]GetInterruptionChangesRow, error) {
@@ -111,7 +126,9 @@ func (q *Queries) GetInterruptionChanges(ctx context.Context, arg GetInterruptio
 			&i.InstanceType,
 			&i.OperatingSystem,
 			&i.InterruptionLevel,
+			&i.InterruptionLevelLabel,
 			&i.LastInterruptionLevel,
+			&i.LastInterruptionLevelLabel,
 			&i.ObservedTime,
 		); err != nil {
 			return nil, err
@@ -133,16 +150,18 @@ INSERT INTO spot_instance_stats (
         operating_system,
         instance_type,
         interruption_level,
+        interruption_level_label,
         observed_time
     )
-VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
 `
 
 type InsertStatParams struct {
-	Region            string
-	OperatingSystem   string
-	InstanceType      string
-	InterruptionLevel int64
+	Region                 string
+	OperatingSystem        string
+	InstanceType           string
+	InterruptionLevel      int64
+	InterruptionLevelLabel string
 }
 
 func (q *Queries) InsertStat(ctx context.Context, arg InsertStatParams) error {
@@ -151,6 +170,7 @@ func (q *Queries) InsertStat(ctx context.Context, arg InsertStatParams) error {
 		arg.OperatingSystem,
 		arg.InstanceType,
 		arg.InterruptionLevel,
+		arg.InterruptionLevelLabel,
 	)
 	return err
 }

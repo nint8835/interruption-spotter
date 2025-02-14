@@ -1,17 +1,11 @@
 package cmd
 
 import (
-	"context"
-	"database/sql"
-	"errors"
-	"fmt"
-	"log/slog"
-
 	"github.com/spf13/cobra"
 
 	"github.com/nint8835/interruption-spotter/pkg/config"
 	"github.com/nint8835/interruption-spotter/pkg/database"
-	"github.com/nint8835/interruption-spotter/pkg/spotdata"
+	"github.com/nint8835/interruption-spotter/pkg/server"
 )
 
 var runCmd = &cobra.Command{
@@ -24,61 +18,11 @@ var runCmd = &cobra.Command{
 		db, err := database.Connect(cfg)
 		checkErr(err, "Failed to connect to database")
 
-		fetcher := spotdata.Fetcher{}
+		srv, err := server.New(cfg, db)
+		checkErr(err, "Failed to create server")
 
-		ctx := context.Background()
-
-		resp, err := fetcher.Fetch(ctx)
-		checkErr(err, "Failed to fetch data")
-
-		for regionName, regionStats := range resp.SpotAdvisor {
-			for osName, osStats := range regionStats {
-				for instanceType, instanceStats := range osStats {
-					currentLevel, err := db.GetCurrentInterruptionLevel(ctx, database.GetCurrentInterruptionLevelParams{
-						Region:          regionName,
-						OperatingSystem: osName,
-						InstanceType:    instanceType,
-					})
-					if !errors.Is(err, sql.ErrNoRows) {
-						checkErr(err, "Failed to get current interruption level")
-					}
-
-					interruptionLevelLabel := resp.Ranges[instanceStats.InterruptionLevel].Label
-
-					if err == nil && currentLevel.InterruptionLevel == instanceStats.InterruptionLevel && currentLevel.InterruptionLevelLabel == interruptionLevelLabel {
-						slog.Info("No change in interruption level", "region", regionName, "os", osName, "instance_type", instanceType)
-						continue
-					}
-
-					err = db.InsertStat(ctx, database.InsertStatParams{
-						Region:                 regionName,
-						OperatingSystem:        osName,
-						InstanceType:           instanceType,
-						InterruptionLevel:      instanceStats.InterruptionLevel,
-						InterruptionLevelLabel: interruptionLevelLabel,
-					})
-					checkErr(err, "Failed to insert stat")
-				}
-			}
-		}
-
-		// Testing level, for ensuring diffs work
-		db.InsertStat(ctx, database.InsertStatParams{
-			Region:                 "ca-central-1",
-			OperatingSystem:        "Linux",
-			InstanceType:           "t3.medium",
-			InterruptionLevel:      10,
-			InterruptionLevelLabel: ">100%",
-		})
-
-		events, err := db.GetInterruptionChanges(ctx, database.GetInterruptionChangesParams{
-			Regions:          []string{"ca-central-1"},
-			InstanceTypes:    []string{"t3.medium"},
-			OperatingSystems: []string{"Linux"},
-		})
-		checkErr(err, "Failed to get interruption changes")
-
-		fmt.Printf("%#+v\n", events)
+		err = srv.Run()
+		checkErr(err, "Failed to run server")
 	},
 }
 

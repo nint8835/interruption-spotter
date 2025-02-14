@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/spf13/cobra"
 
@@ -30,6 +32,19 @@ var runCmd = &cobra.Command{
 		for regionName, regionStats := range resp.SpotAdvisor {
 			for osName, osStats := range regionStats {
 				for instanceType, instanceStats := range osStats {
+					currentLevel, err := db.GetCurrentInterruptionLevel(ctx, database.GetCurrentInterruptionLevelParams{
+						Region:          regionName,
+						OperatingSystem: osName,
+						InstanceType:    instanceType,
+					})
+					if !errors.Is(err, sql.ErrNoRows) {
+						checkErr(err, "Failed to get current interruption level")
+					}
+
+					if currentLevel == int64(instanceStats.InterruptionLevel) {
+						continue
+					}
+
 					err = db.InsertStat(ctx, database.InsertStatParams{
 						Region:            regionName,
 						OperatingSystem:   osName,

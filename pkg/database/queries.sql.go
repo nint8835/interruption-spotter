@@ -9,6 +9,29 @@ import (
 	"context"
 )
 
+const getCurrentInterruptionLevel = `-- name: GetCurrentInterruptionLevel :one
+SELECT interruption_level
+FROM spot_instance_stats
+WHERE region = ?
+    AND operating_system = ?
+    AND instance_type = ?
+ORDER BY observed_time DESC
+LIMIT 1
+`
+
+type GetCurrentInterruptionLevelParams struct {
+	Region          string
+	OperatingSystem string
+	InstanceType    string
+}
+
+func (q *Queries) GetCurrentInterruptionLevel(ctx context.Context, arg GetCurrentInterruptionLevelParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getCurrentInterruptionLevel, arg.Region, arg.OperatingSystem, arg.InstanceType)
+	var interruption_level int64
+	err := row.Scan(&interruption_level)
+	return interruption_level, err
+}
+
 const insertStat = `-- name: InsertStat :exec
 INSERT INTO spot_instance_stats (
         region,

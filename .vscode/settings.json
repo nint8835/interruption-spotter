@@ -3,5 +3,9 @@
     "gopls": {
         "formatting.local": "github.com/nint8835/interruption-spotter"
     },
-    "files.insertFinalNewline": true
+    "files.insertFinalNewline": true,
+    "sqltools.format": {
+        "linesBetweenQueries": 2,
+        "reservedWordCase": "upper"
+    }
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"log/slog"
 
 	"github.com/spf13/cobra"
 
@@ -41,7 +43,8 @@ var runCmd = &cobra.Command{
 						checkErr(err, "Failed to get current interruption level")
 					}
 
-					if currentLevel == int64(instanceStats.InterruptionLevel) {
+					if err == nil && currentLevel == int64(instanceStats.InterruptionLevel) {
+						slog.Info("No change in interruption level", "region", regionName, "os", osName, "instance_type", instanceType)
 						continue
 					}
 
@@ -55,6 +58,23 @@ var runCmd = &cobra.Command{
 				}
 			}
 		}
+
+		// Testing level, for ensuring diffs work
+		db.InsertStat(ctx, database.InsertStatParams{
+			Region:            "ca-central-1",
+			OperatingSystem:   "Linux",
+			InstanceType:      "t3.medium",
+			InterruptionLevel: 10,
+		})
+
+		events, err := db.GetInterruptionChanges(ctx, database.GetInterruptionChangesParams{
+			Regions:          []string{"ca-central-1"},
+			InstanceTypes:    []string{"t3.medium"},
+			OperatingSystems: []string{"Linux"},
+		})
+		checkErr(err, "Failed to get interruption changes")
+
+		fmt.Printf("%#+v\n", events)
 	},
 }
 

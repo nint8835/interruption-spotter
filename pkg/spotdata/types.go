@@ -18,13 +18,13 @@ type InstanceTypeStats struct {
 	InterruptionLevel int `json:"r"`
 }
 
-type Region struct {
-	Linux   map[string]InstanceTypeStats `json:"Linux"`
-	Windows map[string]InstanceTypeStats `json:"Windows"`
-}
+type OS map[string]InstanceTypeStats
+
+type Region map[string]OS
 
 type SpotDataFile struct {
 	InstanceTypes map[string]InstanceType `json:"instance_types"`
 	Ranges        []Range                 `json:"ranges"`
+	SpotAdvisor   map[string]Region       `json:"spot_advisor"`
 	GlobalRate    string                  `json:"global_rate"`
 }

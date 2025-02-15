@@ -9,15 +9,17 @@ INSERT INTO spot_instance_stats (
     )
 VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP);
 
--- name: GetCurrentInterruptionLevel :one
-SELECT interruption_level,
+-- name: GetCurrentInterruptionLevels :many
+SELECT region,
+    operating_system,
+    instance_type,
+    MAX(observed_time),
+    interruption_level,
     interruption_level_label
 FROM spot_instance_stats
-WHERE region = ?
-    AND operating_system = ?
-    AND instance_type = ?
-ORDER BY observed_time DESC
-LIMIT 1;
+GROUP BY region,
+    operating_system,
+    instance_type;
 
 -- name: GetInterruptionChanges :many
 SELECT id,

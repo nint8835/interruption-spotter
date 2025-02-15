@@ -11,33 +11,56 @@ import (
 	"time"
 )
 
-const getCurrentInterruptionLevel = `-- name: GetCurrentInterruptionLevel :one
-SELECT interruption_level,
+const getCurrentInterruptionLevels = `-- name: GetCurrentInterruptionLevels :many
+SELECT region,
+    operating_system,
+    instance_type,
+    MAX(observed_time),
+    interruption_level,
     interruption_level_label
 FROM spot_instance_stats
-WHERE region = ?
-    AND operating_system = ?
-    AND instance_type = ?
-ORDER BY observed_time DESC
-LIMIT 1
+GROUP BY region,
+    operating_system,
+    instance_type
 `
 
-type GetCurrentInterruptionLevelParams struct {
-	Region          string
-	OperatingSystem string
-	InstanceType    string
-}
-
-type GetCurrentInterruptionLevelRow struct {
+type GetCurrentInterruptionLevelsRow struct {
+	Region                 string
+	OperatingSystem        string
+	InstanceType           string
+	Max                    interface{}
 	InterruptionLevel      int64
 	InterruptionLevelLabel string
 }
 
-func (q *Queries) GetCurrentInterruptionLevel(ctx context.Context, arg GetCurrentInterruptionLevelParams) (GetCurrentInterruptionLevelRow, error) {
-	row := q.db.QueryRowContext(ctx, getCurrentInterruptionLevel, arg.Region, arg.OperatingSystem, arg.InstanceType)
-	var i GetCurrentInterruptionLevelRow
-	err := row.Scan(&i.InterruptionLevel, &i.InterruptionLevelLabel)
-	return i, err
+func (q *Queries) GetCurrentInterruptionLevels(ctx context.Context) ([]GetCurrentInterruptionLevelsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCurrentInterruptionLevels)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCurrentInterruptionLevelsRow
+	for rows.Next() {
+		var i GetCurrentInterruptionLevelsRow
+		if err := rows.Scan(
+			&i.Region,
+			&i.OperatingSystem,
+			&i.InstanceType,
+			&i.Max,
+			&i.InterruptionLevel,
+			&i.InterruptionLevelLabel,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getInterruptionChanges = `-- name: GetInterruptionChanges :many

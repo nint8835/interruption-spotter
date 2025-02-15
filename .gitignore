@@ -25,3 +25,5 @@ go.work.sum
 .env
 
 interruptions.db
+pkg/server/static/style.css
+tmp/

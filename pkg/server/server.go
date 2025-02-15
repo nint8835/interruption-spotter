@@ -6,8 +6,11 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/benbjohnson/hashfs"
+
 	"github.com/nint8835/interruption-spotter/pkg/config"
 	"github.com/nint8835/interruption-spotter/pkg/database"
+	"github.com/nint8835/interruption-spotter/pkg/server/static"
 )
 
 type Server struct {
@@ -60,7 +63,10 @@ func New(cfg *config.Config, db *database.Queries) *Server {
 		stoppedChan: make(chan struct{}),
 	}
 
-	mux.HandleFunc("/feed", instance.handleFeed)
+	mux.Handle("GET /static/", http.StripPrefix("/static/", hashfs.FileServer(static.HashFS)))
+
+	mux.HandleFunc("GET /feed", instance.handleFeed)
+	mux.HandleFunc("GET /{$}", instance.handleIndex)
 
 	return instance
 }

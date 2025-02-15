@@ -1,3 +1,4 @@
 pkg/database/db.go linguist-generated
 pkg/database/models.go linguist-generated
 pkg/database/*.sql.go linguist-generated
+**/*_templ.go linguist-generated

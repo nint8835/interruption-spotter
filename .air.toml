@@ -1,0 +1,5 @@
+[build]
+aicmd = "make css && go tool templ generate && go build -o ./tmp/main ."
+bin = "./tmp/main run"
+exclude_regex = ["_templ.go"]
+include_ext = ["go", "templ", "env"]

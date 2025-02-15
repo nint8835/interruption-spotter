@@ -1,10 +1,16 @@
 package cmd
 
 import (
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/spf13/cobra"
 
 	"github.com/nint8835/interruption-spotter/pkg/config"
 	"github.com/nint8835/interruption-spotter/pkg/database"
+	"github.com/nint8835/interruption-spotter/pkg/monitor"
 	"github.com/nint8835/interruption-spotter/pkg/server"
 )
 
@@ -18,11 +24,19 @@ var runCmd = &cobra.Command{
 		db, err := database.Connect(cfg)
 		checkErr(err, "Failed to connect to database")
 
-		srv, err := server.New(cfg, db)
-		checkErr(err, "Failed to create server")
+		mon := monitor.New(db, cfg)
 
-		err = srv.Run()
-		checkErr(err, "Failed to run server")
+		srv := server.New(cfg, db)
+
+		mon.Start()
+		srv.Start()
+
+		sc := make(chan os.Signal, 1)
+		signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
+		<-sc
+
+		srv.Stop(context.Background())
+		mon.Stop()
 	},
 }
 

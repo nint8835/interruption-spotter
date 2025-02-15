@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -15,17 +16,32 @@ import (
 )
 
 type Server struct {
-	cfg *config.Config
-	db  *database.Queries
-	mux *http.ServeMux
+	cfg         *config.Config
+	db          *database.Queries
+	srv         *http.Server
+	mux         *http.ServeMux
+	stoppedChan chan struct{}
 }
 
-func (s *Server) Run() error {
-	if err := http.ListenAndServe(s.cfg.BindAddr, s.mux); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return err
-	}
+func (s *Server) run() {
+	defer close(s.stoppedChan)
 
-	return nil
+	if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		slog.Error("Failed to serve site", "err", err)
+		return
+	}
+}
+
+func (s *Server) Start() {
+	go s.run()
+}
+
+func (s *Server) Stop(ctx context.Context) {
+	err := s.srv.Shutdown(ctx)
+	if err != nil {
+		slog.Error("Failed to shutdown server", "err", err)
+	}
+	<-s.stoppedChan
 }
 
 func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +72,12 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 		Link: &feeds.Link{
 			Href: "https://interruption-spotter.bootleg.technology",
 		},
-		Description: fmt.Sprintf("Spot Advisor changes for regions %s, instance types %s, and operating systems %s", regions, instanceTypes, operatingSystems),
+		Description: fmt.Sprintf(
+			"Spot Advisor changes for regions %s, instance types %s, and operating systems %s",
+			regions,
+			instanceTypes,
+			operatingSystems,
+		),
 		Author: &feeds.Author{
 			Name:  "Interruption Spotter",
 			Email: "interruption-spotter@rileyflynn.me",
@@ -69,7 +90,12 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 		item := &feeds.Item{
 			Id:      fmt.Sprintf("%d", change.ID),
 			Created: change.ObservedTime,
-			Title:   fmt.Sprintf("Spot Advisor Change for %s on %s in %s", change.InstanceType, change.OperatingSystem, change.Region),
+			Title: fmt.Sprintf(
+				"Spot Advisor Change for %s on %s in %s",
+				change.InstanceType,
+				change.OperatingSystem,
+				change.Region,
+			),
 		}
 
 		prevLevel, hasPrevLevel := change.LastInterruptionLevel.(int64)
@@ -107,14 +133,21 @@ func (s *Server) handleFeed(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func New(cfg *config.Config, db *database.Queries) (*Server, error) {
+func New(cfg *config.Config, db *database.Queries) *Server {
+	mux := http.NewServeMux()
+
 	instance := &Server{
 		cfg: cfg,
 		db:  db,
-		mux: http.NewServeMux(),
+		mux: mux,
+		srv: &http.Server{
+			Addr:    cfg.BindAddr,
+			Handler: mux,
+		},
+		stoppedChan: make(chan struct{}),
 	}
 
-	instance.mux.HandleFunc("/feed", instance.handleFeed)
+	mux.HandleFunc("/feed", instance.handleFeed)
 
-	return instance, nil
+	return instance
 }

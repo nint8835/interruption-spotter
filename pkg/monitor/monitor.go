@@ -12,6 +12,7 @@ import (
 )
 
 type Monitor struct {
+	logger        *slog.Logger
 	db            *database.Queries
 	cfg           *config.Config
 	fetcher       *spotdata.Fetcher
@@ -22,7 +23,7 @@ type Monitor struct {
 }
 
 func (m *Monitor) updateInterruptionLevels() error {
-	slog.Debug("Checking if we should fetch spot data")
+	m.logger.Debug("Checking if we should fetch spot data")
 
 	shouldFetch, err := m.fetcher.ShouldFetch(m.monitorCtx)
 	if err != nil {
@@ -30,11 +31,11 @@ func (m *Monitor) updateInterruptionLevels() error {
 	}
 
 	if !shouldFetch {
-		slog.Debug("Spot data file unchanged, skipping fetch")
+		m.logger.Debug("Spot data file unchanged, skipping fetch")
 		return nil
 	}
 
-	slog.Debug("Fetching spot data")
+	m.logger.Debug("Fetching spot data")
 	spotData, err := m.fetcher.Fetch(m.monitorCtx)
 	if err != nil {
 		return fmt.Errorf("failed to fetch spot data: %w", err)
@@ -72,7 +73,7 @@ func (m *Monitor) updateInterruptionLevels() error {
 				if hasCurrentVal &&
 					currentVal.InterruptionLevel == instanceStats.InterruptionLevel &&
 					currentVal.InterruptionLevelLabel == interruptionLevelLabel {
-					slog.Debug(
+					m.logger.Debug(
 						"Interruption level unchanged",
 						"region", regionName,
 						"os", osName,
@@ -83,7 +84,7 @@ func (m *Monitor) updateInterruptionLevels() error {
 					continue
 				}
 
-				slog.Info(
+				m.logger.Info(
 					"Interruption level changed",
 					"region", regionName,
 					"os", osName,
@@ -105,33 +106,40 @@ func (m *Monitor) updateInterruptionLevels() error {
 		}
 	}
 
-	slog.Debug("Finished updating interruption levels")
+	m.logger.Debug("Finished updating interruption levels")
 
 	return nil
 }
 
 func (m *Monitor) run() {
+	defer close(m.stoppedChan)
+
 	for {
 		select {
 		case <-m.monitorTicker.C:
 			err := m.updateInterruptionLevels()
 			if err != nil {
-				slog.Error("Failed to update interruption levels", "err", err)
+				m.logger.Error("Failed to update interruption levels", "err", err)
 			}
 		case <-m.monitorCtx.Done():
-			close(m.stoppedChan)
 			return
 		}
 	}
 }
 
 func (m *Monitor) Start() {
+	m.logger.Debug("Starting monitor")
 	go m.run()
 }
 
 func (m *Monitor) Stop() {
+	m.logger.Debug("Stopping monitor")
+
 	m.stopMonitor()
+	m.monitorTicker.Stop()
+
 	<-m.stoppedChan
+	m.logger.Debug("Monitor stopped")
 }
 
 func New(db *database.Queries, cfg *config.Config) *Monitor {
@@ -139,6 +147,7 @@ func New(db *database.Queries, cfg *config.Config) *Monitor {
 	monitorCtx, stopMonitor := context.WithCancel(ctx)
 
 	return &Monitor{
+		logger:        slog.Default().With("component", "monitor"),
 		db:            db,
 		cfg:           cfg,
 		fetcher:       &spotdata.Fetcher{},

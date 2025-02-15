@@ -13,9 +13,10 @@ import (
 )
 
 type Config struct {
-	LogLevel     string `default:"info" split_words:"true"`
-	DatabasePath string `default:"interruptions.db" split_words:"true"`
-	BindAddr     string `default:":8080" split_words:"true"`
+	LogLevel     string        `default:"info" split_words:"true"`
+	DatabasePath string        `default:"interruptions.db" split_words:"true"`
+	BindAddr     string        `default:":8080" split_words:"true"`
+	PollInterval time.Duration `default:"5m" split_words:"true"`
 }
 
 func Load() (*Config, error) {

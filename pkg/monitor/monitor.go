@@ -142,7 +142,7 @@ func New(db *database.Queries, cfg *config.Config) *Monitor {
 		db:            db,
 		cfg:           cfg,
 		fetcher:       &spotdata.Fetcher{},
-		monitorTicker: time.NewTicker(time.Second * 5),
+		monitorTicker: time.NewTicker(cfg.PollInterval),
 		monitorCtx:    monitorCtx,
 		stopMonitor:   stopMonitor,
 		stoppedChan:   make(chan struct{}),

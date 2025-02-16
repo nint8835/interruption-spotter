@@ -19,8 +19,5 @@ linters-settings:
     local-prefixes: github.com/nint8835/interruption-spotter
 
 issues:
-  exclude-rules:
-    - path: 'pkg/server/static/fs.go'
-      linters:
-        # In CI the tailwind output won't be built, so linting will fail on the go:embed directive
-        - typecheck
+  exclude-files:
+    - 'pkg/server/static/fs.go'

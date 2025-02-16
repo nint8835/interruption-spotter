@@ -52,10 +52,11 @@ templ feedOptions(props IndexProps) {
 	</div>
 }
 
-templ Index(props IndexProps) {
-	@ui.Layout("") {
+templ feedUrlDisplay(props IndexProps) {
+	<h2 class="text-center text-2xl font-bold">Create your feed</h2>
+	<div class="p-2 space-y-2">
 		@feedOptions(props)
-		<div class="p-2">
+		<div>
 			<div class="w-full justify-center p-2 bg-red-900 rounded-md" style="display: none" id="feed-url-error-display">
 				Please select at least one region, instance type, and operating system.
 			</div>
@@ -64,6 +65,16 @@ templ Index(props IndexProps) {
 				<button class="cursor-copy rounded-md bg-emerald-700 px-4 py-2 hover:bg-emerald-800 active:bg-emerald-900" id="copy-feed-button">Copy</button>
 			</div>
 		</div>
-		<script src={ static.GetStaticPath("script.js") }></script>
+	</div>
+	<script src={ static.GetStaticPath("script.js") }></script>
+}
+
+templ Index(props IndexProps) {
+	@ui.Layout("") {
+		<div class="flex items-center flex-col p-4 gap-2">
+			<h1 class="text-transparent bg-clip-text text-center bg-gradient-to-br w-fit from-rose-400 via-fuchsia-500 to-indigo-500 text-6xl font-black">Interruption Spotter</h1>
+			<p class="max-w-[80ch] text-center">Interruption Spotter monitors the AWS Spot Advisor data and tracks changes to interruption rates, providing RSS feeds enabling you to keep an eye on the interruption rates of the instance types you care about.</p>
+		</div>
+		@feedUrlDisplay(props)
 	}
 }

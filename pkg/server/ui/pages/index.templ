@@ -1,7 +1,69 @@
 package pages
 
-import "github.com/nint8835/interruption-spotter/pkg/server/ui"
+import (
+	"github.com/nint8835/interruption-spotter/pkg/server/static"
+	"github.com/nint8835/interruption-spotter/pkg/server/ui"
+)
 
-templ Index() {
-	@ui.Layout("")
+type IndexProps struct {
+	Regions          []string
+	InstanceTypes    []string
+	OperatingSystems []string
+}
+
+templ selectBox(title string) {
+	<div class="flex max-h-64 flex-col items-center md:h-64 md:flex-1">
+		<h3 class="font-semibold">{ title }</h3>
+		<div class="flex-1 overflow-auto w-full bg-zinc-900 rounded-md p-4">
+			{ children... }
+		</div>
+	</div>
+}
+
+templ feedOptions(props IndexProps) {
+	<div class="flex flex-col md:flex-row gap-2">
+		@selectBox("Regions") {
+			for _, region := range props.Regions {
+				<div>
+					{{ id := "region-" + region }}
+					<input type="checkbox" id={ id } value={ region } class="feed-option region-select"/>
+					<label for={ id }>{ region }</label>
+				</div>
+			}
+		}
+		@selectBox("Instance Types") {
+			for _, instanceType := range props.InstanceTypes {
+				<div>
+					{{ id := "instance-type-" + instanceType }}
+					<input type="checkbox" id={ id } value={ instanceType } class="feed-option instance-type-select"/>
+					<label for={ id }>{ instanceType }</label>
+				</div>
+			}
+		}
+		@selectBox("Operating Systems") {
+			for _, operatingSystem := range props.OperatingSystems {
+				<div>
+					{{ id := "operating-system-" + operatingSystem }}
+					<input type="checkbox" id={ id } value={ operatingSystem } class="feed-option operating-system-select"/>
+					<label for={ id }>{ operatingSystem }</label>
+				</div>
+			}
+		}
+	</div>
+}
+
+templ Index(props IndexProps) {
+	@ui.Layout("") {
+		@feedOptions(props)
+		<div class="p-2">
+			<div class="w-full justify-center p-2 bg-red-900 rounded-md" style="display: none" id="feed-url-error-display">
+				Please select at least one region, instance type, and operating system.
+			</div>
+			<div class="w-full gap-2" id="feed-url-container">
+				<div class="flex-1 overflow-auto rounded-md bg-zinc-900 p-2 font-mono whitespace-nowrap" id="feed-url"></div>
+				<button class="cursor-copy rounded-md bg-emerald-700 px-4 py-2 hover:bg-emerald-800 active:bg-emerald-900" id="copy-feed-button">Copy</button>
+			</div>
+		</div>
+		<script src={ static.GetStaticPath("script.js") }></script>
+	}
 }

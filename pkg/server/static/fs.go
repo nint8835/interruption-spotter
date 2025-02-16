@@ -6,7 +6,7 @@ import (
 	"github.com/benbjohnson/hashfs"
 )
 
-//go:embed style.css
+//go:embed style.css script.js
 var fs embed.FS
 var HashFS *hashfs.FS = hashfs.NewFS(fs)
 

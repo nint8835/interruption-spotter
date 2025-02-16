@@ -45,4 +45,19 @@ FROM spot_instance_stats
 WHERE region IN (sqlc.slice('regions'))
     AND instance_type IN (sqlc.slice('instance_types'))
     AND operating_system IN (sqlc.slice('operating_systems'))
-ORDER BY observed_time DESC
+ORDER BY observed_time DESC;
+
+-- name: GetInstanceTypes :many
+SELECT DISTINCT instance_type
+FROM spot_instance_stats
+ORDER BY instance_type;
+
+-- name: GetOperatingSystems :many
+SELECT DISTINCT operating_system
+FROM spot_instance_stats
+ORDER BY operating_system;
+
+-- name: GetRegions :many
+SELECT DISTINCT region
+FROM spot_instance_stats
+ORDER BY region;

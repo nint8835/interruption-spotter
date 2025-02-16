@@ -63,6 +63,35 @@ func (q *Queries) GetCurrentInterruptionLevels(ctx context.Context) ([]GetCurren
 	return items, nil
 }
 
+const getInstanceTypes = `-- name: GetInstanceTypes :many
+SELECT DISTINCT instance_type
+FROM spot_instance_stats
+ORDER BY instance_type
+`
+
+func (q *Queries) GetInstanceTypes(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getInstanceTypes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var instance_type string
+		if err := rows.Scan(&instance_type); err != nil {
+			return nil, err
+		}
+		items = append(items, instance_type)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getInterruptionChanges = `-- name: GetInterruptionChanges :many
 SELECT id,
     region,
@@ -157,6 +186,64 @@ func (q *Queries) GetInterruptionChanges(ctx context.Context, arg GetInterruptio
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getOperatingSystems = `-- name: GetOperatingSystems :many
+SELECT DISTINCT operating_system
+FROM spot_instance_stats
+ORDER BY operating_system
+`
+
+func (q *Queries) GetOperatingSystems(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getOperatingSystems)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var operating_system string
+		if err := rows.Scan(&operating_system); err != nil {
+			return nil, err
+		}
+		items = append(items, operating_system)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getRegions = `-- name: GetRegions :many
+SELECT DISTINCT region
+FROM spot_instance_stats
+ORDER BY region
+`
+
+func (q *Queries) GetRegions(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getRegions)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var region string
+		if err := rows.Scan(&region); err != nil {
+			return nil, err
+		}
+		items = append(items, region)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

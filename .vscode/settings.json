@@ -13,5 +13,8 @@
     },
     "tailwindCSS.includeLanguages": {
         "templ": "html"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
     }
 }

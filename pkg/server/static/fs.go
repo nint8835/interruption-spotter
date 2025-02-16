@@ -7,7 +7,6 @@ import (
 )
 
 //go:embed style.css script.js
-//nolint:typecheck
 var fs embed.FS
 var HashFS *hashfs.FS = hashfs.NewFS(fs)
 

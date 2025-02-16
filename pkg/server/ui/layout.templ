@@ -21,6 +21,10 @@ templ Layout(title string) {
 			<link rel="stylesheet" href={ static.GetStaticPath("style.css") }/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>"/>
+			<meta name="og:title" content={ getTitleString(title) }/>
+			<meta name="og:type" content="website"/>
+			<meta name="og:url" content="https://interruption-spotter.bootleg.technology"/>
+			<meta name="og:description" content="Interruption Spotter monitors the AWS Spot Advisor data and tracks changes to interruption rates, providing RSS feeds enabling you to keep an eye on the interruption rates of the instance types you care about."/>
 		</head>
 		<body class="flex min-h-screen flex-col bg-zinc-800 text-zinc-300 md:justify-center">
 			<div class="flex flex-1 flex-col justify-center">

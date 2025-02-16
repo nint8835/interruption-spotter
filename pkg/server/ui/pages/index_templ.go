@@ -53,7 +53,7 @@ func selectBox(title string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</h3><div class=\"flex-1 overflow-auto w-full bg-zinc-900 rounded-md p-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</h3><div class=\"w-full flex-1 overflow-auto rounded-md bg-zinc-900 p-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -366,7 +366,7 @@ func feedUrlDisplay(props IndexProps) templ.Component {
 			templ_7745c5c3_Var19 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<h2 class=\"text-center text-2xl font-bold\">Create your feed</h2><div class=\"p-2 space-y-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<h2 class=\"text-center text-2xl font-bold\">Create your feed</h2><div class=\"space-y-2 p-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -374,7 +374,7 @@ func feedUrlDisplay(props IndexProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div><div class=\"w-full justify-center p-2 bg-red-900 rounded-md\" style=\"display: none\" id=\"feed-url-error-display\">Please select at least one region, instance type, and operating system.</div><div class=\"w-full gap-2\" id=\"feed-url-container\"><div class=\"flex-1 overflow-auto rounded-md bg-zinc-900 p-2 font-mono whitespace-nowrap\" id=\"feed-url\"></div><button class=\"cursor-copy rounded-md bg-emerald-700 px-4 py-2 hover:bg-emerald-800 active:bg-emerald-900\" id=\"copy-feed-button\">Copy</button></div></div></div><script src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div><div class=\"w-full justify-center rounded-md bg-red-900 p-2\" style=\"display: none\" id=\"feed-url-error-display\">Please select at least one region, instance type, and operating system.</div><div class=\"w-full gap-2\" id=\"feed-url-container\"><div class=\"flex-1 overflow-auto rounded-md bg-zinc-900 p-2 font-mono whitespace-nowrap\" id=\"feed-url\"></div><button class=\"cursor-copy rounded-md bg-emerald-700 px-4 py-2 hover:bg-emerald-800 active:bg-emerald-900\" id=\"copy-feed-button\">Copy</button></div></div></div><script src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -428,7 +428,7 @@ func Index(props IndexProps) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"flex items-center flex-col p-4 gap-2\"><h1 class=\"text-transparent bg-clip-text text-center bg-gradient-to-br w-fit from-rose-400 via-fuchsia-500 to-indigo-500 text-6xl font-black\">Interruption Spotter</h1><p class=\"max-w-[80ch] text-center\">Interruption Spotter monitors the AWS Spot Advisor data and tracks changes to interruption rates, providing RSS feeds enabling you to keep an eye on the interruption rates of the instance types you care about.</p></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"flex flex-col items-center gap-2 p-4\"><h1 class=\"w-fit bg-gradient-to-br from-rose-400 via-fuchsia-500 to-indigo-500 bg-clip-text text-center text-6xl font-black text-transparent\">Interruption Spotter</h1><p class=\"max-w-[80ch] text-center\">Interruption Spotter monitors the AWS Spot Advisor data and tracks changes to interruption rates, providing RSS feeds enabling you to keep an eye on the interruption rates of the instance types you care about.</p></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

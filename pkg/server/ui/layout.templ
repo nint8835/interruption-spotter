@@ -22,8 +22,13 @@ templ Layout(title string) {
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>
 			<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📰</text></svg>"/>
 		</head>
-		<body class="min-h-screen bg-zinc-800 text-zinc-300">
-			{ children... }
+		<body class="flex min-h-screen flex-col bg-zinc-800 text-zinc-300 md:justify-center">
+			<div class="flex flex-1 flex-col justify-center">
+				{ children... }
+			</div>
+			<footer class="p-4 text-center font-light text-zinc-400">
+				Developed by <a class="text-emerald-500 transition-colors hover:text-emerald-300" href="https://rileyflynn.me" target="_blank" rel="noopener noreferrer">Riley Flynn</a>. This project would not be possible without Amazon Web Services' <a class="text-emerald-500 transition-colors hover:text-emerald-300" href="https://spot-bid-advisor.s3.amazonaws.com/spot-advisor-data.json" target="_blank" rel="noopener noreferrer">Spot Advisor data</a>.
+			</footer>
 		</body>
 	</html>
 }
